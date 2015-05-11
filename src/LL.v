@@ -189,6 +189,8 @@ Class assignation := assignation_fun : var -> fact.
 Context {assign : assignation}.
 
 Class pole := pole_set : fact.
+Typeclasses Transparent pole.
+
 Context {pole : pole}.
 
 Global Instance Proper_fact_set : Proper (fact_eq ==> M_eq ==> iff) (@fact_set).
@@ -380,6 +382,8 @@ Notation "X ⊙ Y" := (fact_prd X Y) (at level 40).
 Notation "X ∪ Y" := (fact_dsj X Y) (at level 50).
 
 Section Soundness.
+
+Typeclasses Transparent pole.
 
 Context {M : Monoid}.
 Context {assign : assignation}.
@@ -702,7 +706,7 @@ Proof.
 intros Γ Δ Ξ Hl Hr; eapply rst_trans; eassumption.
 Qed.
 
-Instance Equivalence_syntactic_eq : Equivalence syntactic_eq.
+Program Instance Equivalence_syntactic_eq : Equivalence syntactic_eq.
 
 Lemma permutation_syntactic_eq_incl : forall Γ Δ, permutation Γ Δ -> syntactic_eq Γ Δ.
 Proof.
@@ -760,9 +764,6 @@ split; intros Γ.
   rewrite app_nil_l; reflexivity.
   rewrite app_nil_r; reflexivity.
 Qed.
-Next Obligation.
-apply Proper_syntactic_eq_app.
-Qed.
 
 Instance Proper_syntactic_eq_derivation : Proper (syntactic_eq ==> iff) derivation.
 Proof.
@@ -784,6 +785,7 @@ apply Proper_syntactic_eq_derivation.
 Qed.
 
 Program Let pole : pole := provable_pole.
+Existing Instance pole.
 
 Program Let fact_cst (v : var) : fact := {| fact_set := fun Γ => syntactic_eq Γ (φ_pos v :: nil) |}.
 Next Obligation.
@@ -792,6 +794,7 @@ intros Γ1 Γ2 HΓ Hrw; rewrite <- Hrw; symmetry; assumption.
 Qed.
 
 Program Let α : assignation := fun v : var => (fact_cst v)⌝.
+Existing Instances α.
 
 Lemma syntactic_eq_cons_app : forall A Γ, syntactic_eq (A :: Γ) (Γ ++ A :: nil).
 Proof.
