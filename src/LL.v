@@ -1,4 +1,8 @@
-Require Import List Relations Equivalence AAC.
+Require Import Coq.Lists.List.
+Require Import Coq.Relations.Relations.
+Require Import Coq.Sorting.Sorting.
+Require Import Coq.Classes.Equivalence.
+Require Import AAC.
 
 Parameter var : Type.
 
