@@ -1,5 +1,10 @@
 Makefile
+.Makefile.d
 *.vo
+*.vok
+*.vos
 *.glob
 *.v.d
+.*.aux
+.lia.cache
 opam/
