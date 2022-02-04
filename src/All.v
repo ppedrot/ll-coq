@@ -1,12 +1,13 @@
-Require Import Coq.Lists.List.
-Require Import Coq.Relations.Relations.
-Require Import Coq.Sorting.Sorting.
-Require Import Coq.Classes.Equivalence.
-Require Import AAC.
+From Coq Require Import Lists.List.
+From Coq Require Import Relations.Relations.
+From Coq Require Import Sorting.Sorting.
+From Coq Require Import Classes.Equivalence.
+From Coq Require Import Lia.
+From AAC_tactics Require Import AAC.
 
-Parameter var : Type.
+Parameter var : Set. (* TODO https://github.com/coq-community/aac-tactics/issues/85 ? *)
 
-Hypothesis var_eq_dec : forall x y : var, {x = y} + {x <> y}.
+Axiom var_eq_dec : forall x y : var, {x = y} + {x <> y}.
 
 Inductive φ :=
 | φ_pos : var -> φ
@@ -145,7 +146,7 @@ End Permutation.
 Section Phase_semantics.
 
 Class Monoid := {
-  M : Type;
+  M : Set; (* TODO https://github.com/coq-community/aac-tactics/issues/85 ? *)
   M_eq : M -> M -> Prop;
   Equivalence_M_eq :> Equivalence M_eq;
   M_op : M -> M -> M;
@@ -177,7 +178,7 @@ Coercion fact_set : fact >-> Funclass.
 
 Definition fact_eq (X Y : fact) := forall x, X x <-> Y x.
 
-Global Instance Equivalence_fact_eq {M : Monoid} : Equivalence fact_eq.
+Global Instance Equivalence_fact_eq : Equivalence fact_eq.
 Proof.
 split; unfold fact_eq.
   intros X x; now auto.
@@ -731,16 +732,18 @@ induction HΓ as [Γ|Γ1 Γ2 Γ3]; intros Δ1 Δ2 HΔ.
   induction HΔ as [Δ|Δ1 Δ2 Δ3].
     now reflexivity.
     transitivity (Γ ++ Δ2); [|assumption].
-    refine (let P := _ in or_ind (P Γ Δ1 Δ2) (_ (P Γ Δ2 Δ1)) H); [|now intuition].
+    refine (let P := _ in or_ind (P Γ Δ1 Δ2) (_ (P Γ Δ2 Δ1)) H); now intuition.
+    Unshelve. 2:{
     clear; intros Γ Δ1 Δ2 HΔ; induction HΔ as [Δ1 Δ2|Δ].
       now apply rst_step, synrel_prm, Permutation.Permutation_app_head.
       transitivity (? A :: ? A :: Δ ++ Γ).
         now apply rst_step, synrel_prm, Permutation.Permutation_app_comm.
       transitivity (? A :: Δ ++ Γ).
         now apply rst_step, synrel_ctr.
-        now apply rst_step, synrel_prm; apply (Permutation.Permutation_app_comm (? A :: Δ) Γ).
+        now apply rst_step, synrel_prm; apply (Permutation.Permutation_app_comm (? A :: Δ) Γ). }
   transitivity (Γ2 ++ Δ1); [clear - H|apply IHHΓ; eassumption].
-  refine (let P := _ in or_ind (P Γ1 Γ2 Δ1) (_ (P Γ2 Γ1 Δ1)) H); [|now intuition].
+  refine (let P := _ in or_ind (P Γ1 Γ2 Δ1) (_ (P Γ2 Γ1 Δ1)) H); now intuition.
+  Unshelve.
   clear; intros Γ1 Γ2 Δ HΓ; induction HΓ as [Γ1 Γ2|Γ].
     now apply rst_step, synrel_prm, Permutation.Permutation_app_tail.
     now simpl; apply rst_step, synrel_ctr.
@@ -824,19 +827,20 @@ assert (Hcount :
   apply clos_rst_rst1n in Heq; induction Heq as [Γ|Γ1 Γ2 Γ3].
     reflexivity.
     etransitivity; [|eassumption].
-    refine (let P := _ in or_ind (P Γ1 Γ2) (_ (P Γ2 Γ1)) H); [|now intuition].
+    refine (let P := _ in or_ind (P Γ1 Γ2) (_ (P Γ2 Γ1)) H); now intuition.
+    Unshelve. 2:{
     clear - HA; intros Γ1 Γ2 Hr; induction Hr.
       now induction H; simpl; repeat destruct φ_eq_dec; congruence.
       unfold count_occ.
-      destruct (φ_eq_dec); [exfalso; intuition congruence|reflexivity].
+      destruct (φ_eq_dec); [exfalso; intuition congruence|reflexivity]. }
 destruct Hc as [A [Hi HA]].
 assert (H := Hcount _ _ A Heq HA); clear - H Hi.
 assert (Hrw : forall Γ Δ, count_occ φ_eq_dec (Γ ++ Δ) A = count_occ φ_eq_dec Γ A + count_occ φ_eq_dec Δ A).
   clear; intros Γ Δ; induction Γ as [|B Γ].
     reflexivity.
-    simpl; destruct φ_eq_dec; rewrite IHΓ; omega.
+    simpl; destruct φ_eq_dec; rewrite IHΓ; lia.
 simpl in H; rewrite Hrw in H.
-apply -> (count_occ_In φ_eq_dec) in Hi; omega.
+apply -> (count_occ_In φ_eq_dec) in Hi; lia.
 Qed.
 
 Lemma eval_φ_complete : forall A Γ, (eval_φ A) Γ -> derivation (A :: Γ).
